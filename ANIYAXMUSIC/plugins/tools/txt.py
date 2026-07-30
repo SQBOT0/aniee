@@ -1,6 +1,6 @@
 import os
 import shutil
-import patoolib
+import zipfile
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from ANIYAXMUSIC import app
@@ -17,26 +17,24 @@ def cleanup():
         os.remove(OUTPUT_FILE)
 
 
-def extract_archive(archive_path):
+def extract_zip(zip_path):
     cleanup()
 
     os.makedirs(TEMP_DIR, exist_ok=True)
 
-    patoolib.extract_archive(
-        archive_path,
-        outdir=TEMP_DIR
-    )
+    with zipfile.ZipFile(zip_path, "r") as zip_ref:
+        zip_ref.extractall(TEMP_DIR)
 
 
 def create_txt():
     with open(OUTPUT_FILE, "w", encoding="utf-8") as out:
 
-        for root, dirs, files in os.walk(TEMP_DIR):
+        for root, _, files in os.walk(TEMP_DIR):
             for file in files:
 
                 path = os.path.join(root, file)
 
-                out.write("\n" + "=" * 70 + "\n")
+                out.write("=" * 70 + "\n")
                 out.write(f"FILE : {os.path.relpath(path, TEMP_DIR)}\n")
                 out.write("=" * 70 + "\n\n")
 
@@ -44,7 +42,7 @@ def create_txt():
                     with open(path, "r", encoding="utf-8", errors="ignore") as f:
                         out.write(f.read())
                 except Exception:
-                    out.write("[Binary File - Cannot Display]\n")
+                    out.write("[Binary File - Cannot Display]")
 
                 out.write("\n\n")
 
@@ -55,39 +53,20 @@ async def archive_to_txt(client: Client, message: Message):
     replied = message.reply_to_message
 
     if not replied:
-        return await message.reply_text("❌ Reply to an archive file.")
+        return await message.reply_text("❌ Reply to a ZIP file.")
 
     if not replied.document:
-        return await message.reply_text("❌ Reply to a ZIP/RAR/7Z archive.")
+        return await message.reply_text("❌ Reply to a ZIP file.")
 
-    file_name = replied.document.file_name.lower()
-
-    allowed = (
-        ".zip",
-        ".rar",
-        ".7z",
-        ".tar",
-        ".gz",
-        ".tgz",
-        ".bz2",
-        ".xz"
-    )
-
-    if not file_name.endswith(allowed):
-        return await message.reply_text(
-            "❌ Supported formats:\n\nZIP\nRAR\n7Z\nTAR\nTGZ\nGZ\nBZ2\nXZ"
-        )
-
-    status = await message.reply_text("📥 Downloading archive...")
+    if not replied.document.file_name.lower().endswith(".zip"):
+        return await message.reply_text("❌ Only ZIP files are supported.")
 
     archive_path = await replied.download()
 
     try:
-        await status.edit("📂 Extracting archive...")
+        await message.reply_text("📥 Processing ZIP...")
 
-        extract_archive(archive_path)
-
-        await status.edit("📝 Creating TXT...")
+        extract_zip(archive_path)
 
         create_txt()
 
@@ -108,10 +87,11 @@ async def archive_to_txt(client: Client, message: Message):
             caption=caption
         )
 
-        await status.delete()
+    except zipfile.BadZipFile:
+        await message.reply_text("❌ Invalid ZIP file.")
 
     except Exception as e:
-        await status.edit(f"❌ Error:\n`{e}`")
+        await message.reply_text(f"❌ Error:\n`{e}`")
 
     finally:
         if os.path.exists(archive_path):
