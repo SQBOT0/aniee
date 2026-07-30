@@ -61,6 +61,9 @@ spotipy
 telegraph
 tgcrypto==1.2.5
 unidecode
+py7zr
+patool
+rarfile
 wget
 youtube-search
 youtube-search-python
