@@ -80,7 +80,7 @@ Before deploying, generate a **Pyrogram V2 String Session:**
 
 <div align="center">
 
-[![Deploy On Heroku](https://img.shields.io/badge/Deploy%20To%20Heroku-6366f1?style=for-the-badge&logo=heroku&logoColor=white)](https://dashboard.heroku.com/new?template=https://github.com/SUDEEPBOTS/YUKIMUSIC)
+[![Deploy On Heroku](https://img.shields.io/badge/Deploy%20To%20Heroku-6366f1?style=for-the-badge&logo=heroku&logoColor=white)](https://dashboard.heroku.com/new?template=https://github.com/SQBOT0/aniee.git)
 
 </div>
 
